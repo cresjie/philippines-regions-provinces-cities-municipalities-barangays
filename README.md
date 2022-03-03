@@ -5,7 +5,7 @@ We really appreciate if you could give us a Facebook like in our page: [CresJane
 
 Download
 -----
-checkout the [exported](https://github.com/cresjie/philippine-regions-provinces-cities-municipalities-barangays/tree/main/export) files
+checkout the [exported](https://github.com/cresjie/philippines-regions-provinces-cities-municipalities-barangays/tree/main/export) files
 
 Source
 -------
