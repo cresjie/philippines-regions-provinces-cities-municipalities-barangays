@@ -86,7 +86,7 @@ while( !$csv->eof() ) {
 				continue; //skip if no code
 			}
 
-			$name = $line[$colInfo['name']];
+			$name = trim($line[$colInfo['name']]);
 			$correspondenceCode = str_pad($line[$colInfo['code']], 9, '0', STR_PAD_LEFT);
 
 			$provCode = substr($correspondenceCode, 0, 4);
@@ -118,7 +118,7 @@ while( !$csv->eof() ) {
     	
     	printSpinner();
 
-		$name = $line[$colInfo['name']];
+		$name = trim($line[$colInfo['name']]);
 		$correspondenceCode = str_pad($line[$colInfo['code']], 9, '0', STR_PAD_LEFT);
 		
 
@@ -127,7 +127,7 @@ while( !$csv->eof() ) {
     		case 'Mun':
     		case 'SubMun':
     			$code = substr($correspondenceCode, 0, 6);
-	    		$cityname = str_replace('City of ', '', $name);
+	    		$cityname = trim(str_replace('City of ', '', $name));
 	    		$sql = "UPDATE `{$tablename}` SET `city_mun_code`= ?, `city_mun_name`= ? WHERE brgy_code LIKE ?";
 	    		//$sql = "UPDATE `{$tablename}` SET `city_mun_code`='{$code}', `city_mun_name`='{$cityname}' WHERE brgy_code LIKE '{$code}%'";
 				$likeCode = $code.'%';
