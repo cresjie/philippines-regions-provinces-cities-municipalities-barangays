@@ -9,7 +9,7 @@ checkout the [exported](https://github.com/cresjie/philippines-regions-provinces
 
 Source
 -------
-Parsed from excel/csv data file of **PSGC 2nd Quarter of 2021**
+Parsed from excel/csv data file of **PSGC 1st Quarter of 2025**
 [Philippine Standard Geographic Code](https://psa.gov.ph/classification/psgc/)
 
 

@@ -9,7 +9,7 @@ $password = "";
 $dbname = "temp_db";
 
 $tablename = 'philippines_barangays'; //name of table to be created
-$csvFilename = 'PSGC-2Q-2021-Publication-Datafile-01092021.csv'; //csv file from PSGC
+$csvFilename = 'PSGC-1Q-2025-Publication-Datafile.csv'; //csv file from PSGC
 
 /****END Config here***/
 
@@ -65,15 +65,39 @@ if ($conn->query($sql) === TRUE) {
 }
 
 
+// Define column indices for easier reference
+// PSGC Code, Name, and Geographic Level
+// change this if the CSV columns are different
+$colInfo = [
+	'code' => 2, // correspondence Code
+	'name' => 1, // Name
+	'geo_level' => 3 // Geographic Level
+];
+
 
 echo "writing barangays\n";
 echo "***";
 while( !$csv->eof() ) {
     foreach(new LimitIterator($csv, $startIndex, $sqlInsertChunkSize) as $index => $line) {
-    	if ($line[2] == 'Bgy') {
+    	if ($line[$colInfo['geo_level']] == 'Bgy') {
     		printSpinner();
-    		$sql = "INSERT INTO `{$tablename}` (`brgy_code`, `brgy_name`) VALUES ('{$line[0]}', '{$line[1]}')";
-    		$conn->query($sql);
+
+			if (!$line[$colInfo['code']]) {
+				continue; //skip if no code
+			}
+
+			$name = $line[$colInfo['name']];
+			$correspondenceCode = str_pad($line[$colInfo['code']], 9, '0', STR_PAD_LEFT);
+
+			$provCode = substr($correspondenceCode, 0, 4);
+
+    		$sql = "INSERT INTO `{$tablename}` (`brgy_code`, `brgy_name`, `prov_code`) VALUES (?, ?, ?)";
+    		//$sql = "INSERT INTO `{$tablename}` (`brgy_code`, `brgy_name`) VALUES ('{$psgcCode}', '{$name}')";
+			$statement = $conn->prepare($sql);
+			$statement->bind_param('sss', $correspondenceCode, $name, $provCode);
+			$statement->execute();
+			$statement->close();
+    		//$conn->query($sql);
     	}
     }
 
@@ -84,6 +108,8 @@ while( !$csv->eof() ) {
 $csv->rewind();
 $startIndex =   1; //skip header
 
+
+
 echo "\n";
 echo "writing city, municipality, province, region\n";
 echo "***";
@@ -92,27 +118,49 @@ while( !$csv->eof() ) {
     	
     	printSpinner();
 
-    	switch($line[2]) {
+		$name = $line[$colInfo['name']];
+		$correspondenceCode = str_pad($line[$colInfo['code']], 9, '0', STR_PAD_LEFT);
+		
+
+    	switch($line[$colInfo['geo_level']]) {
     		case 'City':
     		case 'Mun':
     		case 'SubMun':
-    			$code = substr($line[0], 0, 6);
-	    		$cityname = str_replace('City of ', '', $line[1]);
-	    		$sql = "UPDATE `{$tablename}` SET `city_mun_code`='{$code}', `city_mun_name`='{$cityname}' WHERE brgy_code LIKE '{$code}%'";
-	    		$conn->query($sql);
+    			$code = substr($correspondenceCode, 0, 6);
+	    		$cityname = str_replace('City of ', '', $name);
+	    		$sql = "UPDATE `{$tablename}` SET `city_mun_code`= ?, `city_mun_name`= ? WHERE brgy_code LIKE ?";
+	    		//$sql = "UPDATE `{$tablename}` SET `city_mun_code`='{$code}', `city_mun_name`='{$cityname}' WHERE brgy_code LIKE '{$code}%'";
+				$likeCode = $code.'%';
+				$statement = $conn->prepare($sql);
+				$statement->bind_param('sss', $code, $cityname, $likeCode);
+				$statement->execute();
+				$statement->close();
+	    		//$conn->query($sql);
     		break;
 
     		case 'Prov':
     		case 'Dist':
-    			$code = substr($line[0], 0, 4);
-	    		$sql = "UPDATE `{$tablename}` SET `prov_code`='{$code}', `prov_name`='{$line[1]}' WHERE brgy_code LIKE '{$code}%'";
-	    		$conn->query($sql);
+    			$code = substr($correspondenceCode, 0, 4);
+	    		$sql = "UPDATE `{$tablename}` SET `prov_code`= ?, `prov_name`= ? WHERE brgy_code LIKE ?";
+	    		//$sql = "UPDATE `{$tablename}` SET `prov_code`='{$code}', `prov_name`='{$name}' WHERE brgy_code LIKE '{$code}%'";
+	    		//$conn->query($sql);
+				$likeCode = $code.'%';
+				$statement = $conn->prepare($sql);
+				$statement->bind_param('sss', $code, $name, $likeCode);
+				$statement->execute();
+				$statement->close();
     		break;
 
     		case 'Reg':
-    			$code = substr($line[0], 0, 2);
-	    		$sql = "UPDATE `{$tablename}` SET `region_code`='{$code}', `region_name`='{$line[1]}' WHERE brgy_code LIKE '{$code}%'";
-	    		$conn->query($sql);
+    			$code = substr($correspondenceCode, 0, 2);
+	    		$sql = "UPDATE `{$tablename}` SET `region_code`= ?, `region_name`= ? WHERE brgy_code LIKE ?";
+	    		//$sql = "UPDATE `{$tablename}` SET `region_code`='{$code}', `region_name`='{$name}' WHERE brgy_code LIKE '{$code}%'";
+	    		//$conn->query($sql);
+				$likeCode = $code.'%';
+				$statement = $conn->prepare($sql);
+				$statement->bind_param('sss', $code, $name, $likeCode);
+				$statement->execute();
+				$statement->close();
     		break;
 
     	}
